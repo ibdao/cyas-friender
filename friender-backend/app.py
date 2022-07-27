@@ -1,18 +1,21 @@
 from flask import Flask, request, render_template, redirect, flash, session
 from flask_debugtoolbar import DebugToolbarExtension
-import boto3, botocore
+import boto3
+import botocore
 import os
 from botocore.exceptions import ClientError
+from werkzeug.utils import secure_filename
 
-from forms import UploadForm
 
 app = Flask(__name__)
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
-BUCKET = "friender-bucket-r26-jason"
+app.config['S3_KEY'] = os.environ['S3_KEY']
+app.config['S3_SECRET'] = os.environ['S3_SECRET']
+app.config["S3_BUCKET"] = "friender-bucket-r26-jason"
 
 s3 = boto3.client(
-   "s3",
+    "s3",
    aws_access_key_id=app.config['S3_KEY'],
    aws_secret_access_key=app.config['S3_SECRET']
 )
@@ -32,14 +35,13 @@ def generate_landing():
 
 @app.post("/")
 def upload_file():
-    if "user_file" not in request.files:
-        return "No user_file key in request.files"
-    file = request.files["user_file"]
-    if file.filename == "":
-        return "Please select a file"
-    if file:
-        file.filename = secure_filename(file.filename)
-        output = send_to_s3(file, app.config["S3_BUCKET"])
-        return str(output)
-    else:
-        return redirect("/")
+    img = request.files['file']
+    if img:
+        filename = secure_filename(img.filename)
+        img.save(filename)
+        s3.upload_file(
+        Bucket="friender-bucket-r26-jason",
+        Filename=filename,
+        Key=filename
+        )
+    return redirect("/")
