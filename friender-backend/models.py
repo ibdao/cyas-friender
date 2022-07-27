@@ -60,8 +60,8 @@ class User(db.Model):
     dislike = db.relationship(
         "User",
         secondary="dislike",
-        primaryjoin=(Dislike.user_being_disliked_id == id),
-        secondaryjoin=(Dislike.user_disliking_id == id),
+        primaryjoin=(Dislike.user_not_being_liked_id == id),
+        secondaryjoin=(Dislike.user_not_liking_id == id),
         backref="disliking",
     )
 
@@ -115,16 +115,20 @@ class User(db.Model):
             user for user in self.liking if user == other_user]
         return len(found_user_list) == 1
 
-
-    def is_liked_by(self, other_user):
-
+    # def is_liked_by(self, other_user):
+    #     found_user_list = [
+    #         user for user in self.liking if user == other_user]
+    #     return len(found_user_list) == 1
 
     def is_disliking(self, other_user):
         found_user_list = [
             user for user in self.disliking if user == other_user]
         return len(found_user_list) == 1
 
-    def is_disliked_by(self, other_user):
+    # def is_disliked_by(self, other_user):
+    #     found_user_list = [
+    #         user for user in self.liking if user == other_user]
+    #     return len(found_user_list) == 1
 
 
 
