@@ -1,7 +1,6 @@
 from flask import Flask, request, render_template, redirect, flash, session
 from flask_debugtoolbar import DebugToolbarExtension
 import boto3
-import botocore
 import os
 from botocore.exceptions import ClientError
 from werkzeug.utils import secure_filename
@@ -12,7 +11,7 @@ app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 app.config['S3_KEY'] = os.environ['S3_KEY']
 app.config['S3_SECRET'] = os.environ['S3_SECRET']
-app.config["S3_BUCKET"] = "friender-bucket-r26-jason"
+app.config["S3_BUCKET"] = os.environ['S3_BUCKET']
 
 s3 = boto3.client(
     "s3",
@@ -21,8 +20,6 @@ s3 = boto3.client(
 )
 
 #debug = DebugToolbarExtension(app)
-RESPONSES_KEY = "responses"
-
 
 @app.get("/")
 def generate_landing():
@@ -38,10 +35,11 @@ def upload_file():
     img = request.files['file']
     if img:
         filename = secure_filename(img.filename)
-        img.save(filename)
-        s3.upload_file(
-        Bucket="friender-bucket-r26-jason",
-        Filename=filename,
-        Key=filename
+        s3.upload_fileobj(
+            img,
+            app.config["S3_BUCKET"],
+            filename,
+            ExtraArgs={'ACL': 'public-read'}  
         )
+
     return redirect("/")
