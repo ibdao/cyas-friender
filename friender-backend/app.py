@@ -7,9 +7,11 @@ from werkzeug.utils import secure_filename
 from models import db, connect_db, User, Like, Dislike
 
 app = Flask(__name__)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = (
     os.environ['DATABASE_URL'].replace("postgres://", "postgresql://"))
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
+
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 app.config['S3_KEY'] = os.environ['S3_KEY']
 app.config['S3_SECRET'] = os.environ['S3_SECRET']

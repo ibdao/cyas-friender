@@ -4,6 +4,38 @@ from flask_sqlalchemy import SQLAlchemy
 bcrypt = Bcrypt()
 db = SQLAlchemy()
 
+class Like (db.Model):
+    __tablename__='likes'
+
+    user_liking_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id', ondelete='CASCADE'),
+        primary_key=True,
+    )
+
+    user_being_liked_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id', ondelete='CASCADE'),
+        primary_key=True,
+    )
+
+
+class Dislike (db.Model):
+    __tablename__='dislikes'
+
+    user_not_liking_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id', ondelete='CASCADE'),
+        primary_key=True,
+    )
+
+    user_not_being_liked_id = db.Column(
+        db.Integer,
+        db.ForeignKey('users.id', ondelete='CASCADE'),
+        primary_key=True,
+    )
+
+
 class User(db.Model):
 
     __tablename__='users'
@@ -34,8 +66,18 @@ class User(db.Model):
         nullable=False
     )
 
+    image_url = db.Column(
+        db.Text,
+        nullable=False
+    )
+
     location = db.Column(
         db.Text,
+        nullable=False
+    )
+
+    friend_radius = db.Column(
+        db.Integer,
         nullable=False
     )
 
@@ -48,6 +90,7 @@ class User(db.Model):
         db.Text,
         nullable=False
     )
+
 
     like = db.relationship(
         "User",
@@ -69,7 +112,7 @@ class User(db.Model):
         return f"<User #{self.id}: {self.username}, {self.email}>"
 
     @classmethod
-    def signup(cls, username, email, password, image_url=DEFAULT_IMAGE_URL):
+    def signup(cls, username, password):
         """Sign up user.
 
         Hashes password and adds user to system.
@@ -79,9 +122,7 @@ class User(db.Model):
 
         user = User(
             username=username,
-            email=email,
             password=hashed_pwd,
-            image_url=image_url,
         )
 
         db.session.add(user)
@@ -115,56 +156,23 @@ class User(db.Model):
             user for user in self.liking if user == other_user]
         return len(found_user_list) == 1
 
-    # def is_liked_by(self, other_user):
-    #     found_user_list = [
-    #         user for user in self.liking if user == other_user]
-    #     return len(found_user_list) == 1
+    def is_liked_by(self, other_user):
+        found_user_list = [
+            user for user in self.like if user == other_user]
+        return len(found_user_list) == 1
 
     def is_disliking(self, other_user):
         found_user_list = [
             user for user in self.disliking if user == other_user]
         return len(found_user_list) == 1
 
-    # def is_disliked_by(self, other_user):
-    #     found_user_list = [
-    #         user for user in self.liking if user == other_user]
-    #     return len(found_user_list) == 1
+    def is_disliked_by(self, other_user):
+        found_user_list = [
+            user for user in self.dislike if user == other_user]
+        return len(found_user_list) == 1
 
 
 
-
-
-
-class Like(db.Model)
-    __tablename__='likes'
-
-    user_liking_id = db.Column(
-        db.Integer,
-        db.ForeignKey('users.id', ondelete='CASCADE'),
-        primary_key=True,
-    )
-
-    user_being_liked_id = db.Column(
-        db.Integer,
-        db.ForeignKey('users.id', ondelete='CASCADE'),
-        primary_key=True,
-    )
-
-
-class Dislike(db.Model)
-    __tablename__='dislikes'
-
-    user_not_liking_id = db.Column(
-        db.Integer,
-        db.ForeignKey('users.id', ondelete='CASCADE'),
-        primary_key=True,
-    )
-
-    user_not_being_liked_id = db.Column(
-        db.Integer,
-        db.ForeignKey('users.id', ondelete='CASCADE'),
-        primary_key=True,
-    )
 
 
 
