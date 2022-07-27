@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, TextAreaField, Integerfield
+from wtforms import StringField, PasswordField, TextAreaField
 from wtforms.validators import DataRequired, Length
 
 class CSRFProtection(FlaskForm):
@@ -13,7 +13,7 @@ class SignUpForm(FlaskForm):
     first_name = StringField('First name', validators=[DataRequired()])
     last_name = StringField('Last name', validators=[DataRequired()])
     location = StringField('Zipcode', validators=[DataRequired()])
-    friend_radius = Integerfield('Friend radius')
+    friend_radius = StringField('Friend radius')
     hobbies = TextAreaField('Hobbies')
     interests = TextAreaField('Interests')
     password = PasswordField('Password', validators=[Length(min=6)])
@@ -24,4 +24,3 @@ class LoginForm(FlaskForm):
 
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[Length(min=6)])
-

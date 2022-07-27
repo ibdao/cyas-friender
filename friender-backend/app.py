@@ -5,6 +5,7 @@ import os
 from botocore.exceptions import ClientError
 from werkzeug.utils import secure_filename
 from models import db, connect_db, User, Like, Dislike
+from forms import SignUpForm, LoginForm
 
 app = Flask(__name__)
 
@@ -27,17 +28,60 @@ connect_db(app)
 
 #debug = DebugToolbarExtension(app)
 
+
 @app.get("/")
 def generate_landing():
     """Generate app landing page"""
 
     return render_template(
-        "base.html",
+        "home-anon.html",
     )
 
 
-@app.post("/")
-def upload_file():
+@app.route("/signup", methods=["GET","POST"])
+def signup_page():
+    """Submit signup form and create user"""
+
+    form = SignUpForm()
+
+    if form.validate_on_submit():
+        try:
+            user = User.signup(
+                username=form.username.data,
+                first_name=form.first_name.data,
+                last_name=form.last_name.data,
+                location=form.location.data,
+                friend_radius=form.friend_radius.data,
+                hobbies=form.hobbies.data,
+                interests=form.interests.data,
+                password=form.password.data,
+            )
+            print("+++++++++++++++++++++++++++++++++++++++")
+            print(user)
+            db.session.commit()
+        except:
+            return render_template(
+                "home-anon.html"
+            )
+        return redirect("/profilephoto")
+    else:
+        return render_template(
+            "signup.html", form=form
+        )
+
+
+
+@app.get("/profilephoto")
+def show_submit_photo_form():
+
+    return render_template(
+        "submitphoto.html"
+    )
+
+@app.post("/profilephoto")
+def submit_a_photo():
+    """Create an optional profile photo"""
+
     img = request.files['file']
     if img:
         filename = secure_filename(img.filename)

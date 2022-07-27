@@ -112,7 +112,15 @@ class User(db.Model):
         return f"<User #{self.id}: {self.username}, {self.email}>"
 
     @classmethod
-    def signup(cls, username, password):
+    def signup(cls,
+               username,
+               first_name,
+               last_name,
+               location,
+               friend_radius,
+               hobbies,
+               interests,
+               password):
         """Sign up user.
 
         Hashes password and adds user to system.
@@ -123,6 +131,12 @@ class User(db.Model):
         user = User(
             username=username,
             password=hashed_pwd,
+            first_name=first_name,
+            last_name=last_name,
+            location=location,
+            friend_radius=friend_radius,
+            hobbies=hobbies,
+            interests=interests,
         )
 
         db.session.add(user)
@@ -184,3 +198,4 @@ def connect_db(app):
 
     db.app = app
     db.init_app(app)
+    db.create_all()
