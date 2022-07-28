@@ -26,6 +26,8 @@ s3 = boto3.client(
 
 connect_db(app)
 
+db.create_all()
+
 #debug = DebugToolbarExtension(app)
 
 
@@ -45,29 +47,30 @@ def signup_page():
     form = SignUpForm()
 
     if form.validate_on_submit():
-        try:
-            user = User.signup(
-                username=form.username.data,
-                first_name=form.first_name.data,
-                last_name=form.last_name.data,
-                location=form.location.data,
-                friend_radius=form.friend_radius.data,
-                hobbies=form.hobbies.data,
-                interests=form.interests.data,
-                password=form.password.data,
-            )
-            print("+++++++++++++++++++++++++++++++++++++++")
-            print(user)
-            db.session.commit()
-        except:
-            return render_template(
-                "home-anon.html"
-            )
+
+        
+
+        User.signup(
+            username=form.username.data,
+            first_name=form.first_name.data,
+            last_name=form.last_name.data,
+            location=form.location.data,
+            friend_radius=form.friend_radius.data,
+            hobbies=form.hobbies.data,
+            interests=form.interests.data,
+            password=form.password.data,
+        )
+
+                
+        db.session.commit()
+
+        # write login function and log the user in here. 
+        # this will set flash g variable to the user and redirect them to the profile photo page
+
         return redirect("/profilephoto")
     else:
-        return render_template(
-            "signup.html", form=form
-        )
+        return render_template("signup.html", form=form)
+       
 
 
 
@@ -91,5 +94,7 @@ def submit_a_photo():
             filename,
             ExtraArgs={'ACL': 'public-read'}
         )
+    # update user g (currently logged in) to show that the photo is owned by them in AWS 
+    # reflected in the database. 
 
-    return redirect("/")
+

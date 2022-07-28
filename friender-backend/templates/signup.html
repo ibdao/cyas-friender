@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block content %}
     <div>
-        <form action="/signup" method="POST">
+        <form method="POST">
             {{ form.hidden_tag() }}
 
             {% for field in form if field.widget.input_type != 'hidden' %}
@@ -10,5 +10,6 @@
 
             <button>Sign up!</button>
         </form>
+
     </div>
 {% endblock %}

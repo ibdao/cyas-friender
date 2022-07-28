@@ -66,10 +66,10 @@ class User(db.Model):
         nullable=False
     )
 
-    image_url = db.Column(
-        db.Text,
-        nullable=False
-    )
+    # image_url = db.Column(
+    #     db.Text,
+    #     nullable=False
+    # )
 
     location = db.Column(
         db.Text,
@@ -92,21 +92,21 @@ class User(db.Model):
     )
 
 
-    like = db.relationship(
-        "User",
-        secondary="like",
-        primaryjoin=(Like.user_being_liked_id == id),
-        secondaryjoin=(Like.user_liking_id == id),
-        backref="liking",
-    )
+    # like = db.relationship(
+    #     "User",
+    #     secondary="like",
+    #     primaryjoin=(Like.user_being_liked_id == id),
+    #     secondaryjoin=(Like.user_liking_id == id),
+    #     backref="liking",
+    # )
 
-    dislike = db.relationship(
-        "User",
-        secondary="dislike",
-        primaryjoin=(Dislike.user_not_being_liked_id == id),
-        secondaryjoin=(Dislike.user_not_liking_id == id),
-        backref="disliking",
-    )
+    # dislike = db.relationship(
+    #     "User",
+    #     secondary="dislike",
+    #     primaryjoin=(Dislike.user_not_being_liked_id == id),
+    #     secondaryjoin=(Dislike.user_not_liking_id == id),
+    #     backref="disliking",
+    # )
 
     def __repr__(self):
         return f"<User #{self.id}: {self.username}, {self.email}>"
@@ -198,4 +198,3 @@ def connect_db(app):
 
     db.app = app
     db.init_app(app)
-    db.create_all()

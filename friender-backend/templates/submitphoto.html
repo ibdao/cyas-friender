@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Test Photo Input</h1>
+<h1>Choose a profile picture</h1>
 
-  <form action="/" method="POST" enctype="multipart/form-data">
-    <label for="file">input photo file</label>
+  <form method="POST" enctype="multipart/form-data">
+    <label for="file">Input photo file here</label>
     <input type="file" name="file" value="file">
-    <button>upload!</button>
+    <button>Upload!</button>
   </form>
 
 {% endblock %}
