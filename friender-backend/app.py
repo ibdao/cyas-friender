@@ -6,7 +6,7 @@ import uuid
 from botocore.exceptions import ClientError
 from werkzeug.utils import secure_filename
 from models import db, connect_db, User, Like, Dislike
-from forms import SignUpForm, LoginForm
+from forms import SignUpForm, LoginForm, PhotoForm
 
 app = Flask(__name__)
 
@@ -18,6 +18,7 @@ app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 app.config['S3_KEY'] = os.environ['S3_KEY']
 app.config['S3_SECRET'] = os.environ['S3_SECRET']
 app.config['S3_BUCKET'] = os.environ['S3_BUCKET']
+BASE_URL = os.environ['BASE_URL']
 
 s3 = boto3.client(
     "s3",
@@ -26,12 +27,13 @@ s3 = boto3.client(
 )
 
 connect_db(app)
-db.drop_all()
+# db.drop_all()
 db.create_all()
 
 # debug = DebugToolbarExtension(app)
 
 CURR_USER_KEY = "curr_user"
+
 
 @app.before_request
 def add_user_to_g():
@@ -53,22 +55,24 @@ def do_login(user):
 
 @app.get("/")
 def generate_landing():
-    """Generate app landing page"""
+    """Generate app landing page for non-logged in users"""
 
-    return render_template(
-        "home-anon.html",
-    )
+    if g.user == None:
+        return render_template("home-anon.html")
+    else:
+        
+        return render_template("home.html")
 
 
 @app.route("/signup", methods=["GET","POST"])
 def signup_page():
-    """Submit signup form and create user"""
+    """Submit signup form and create user
+        Takes user to upload profile photo page
+    """
 
     form = SignUpForm()
 
     if form.validate_on_submit():
-
-
 
         user = User.signup(
             username=form.username.data,
@@ -86,44 +90,46 @@ def signup_page():
 
         do_login(user)
 
-        # write login function and log the user in here.
-        # this will set flash g variable to the user and redirect them to the profile photo page
-        print("*******************")
-        print(user)
         return redirect(f"/profilephoto/{user.id}")
     else:
         return render_template("signup.html", form=form)
 
 
 
-
-@app.get("/profilephoto/<int:user_id>")
-def show_submit_photo_form(user_id):
-
-    return render_template(
-        "submitphoto.html"
-    )
-
-@app.post("/profilephoto/<int:user_id>")
+@app.route("/profilephoto/<int:user_id>", methods=["GET", "POST"])
 def submit_a_photo(user_id):
-    """Create an optional profile photo"""
-
+    """ Submit Profile photo page
+        Renders photo form
+        Takes a file from user, uploads to AWS 
+        and updates database with file name
+    """
+    
     user = User.query.get_or_404(user_id)
     filename = secure_filename(str(uuid.uuid1()))
-    user.img_file = filename
 
-    img = request.files['file']
-    if img:
-        s3.upload_fileobj(
-            img,
-            app.config["S3_BUCKET"],
-            filename,
-            ExtraArgs={'ACL': 'public-read'}
-        )
-    db.session.commit()
+    form = PhotoForm()
 
+    if form.validate_on_submit():
+        img = form.file.data
 
+        if img:
+            s3.upload_fileobj(
+                img,
+                app.config["S3_BUCKET"],
+                filename,
+                ExtraArgs={'ACL': 'public-read'}
+            )
 
-    return redirect('/')
-    # update user g (currently logged in) to show that the photo is owned by them in AWS
-    # reflected in the database.
+            url = f"{BASE_URL}/{filename}"
+            user.img_url = url
+
+            db.session.commit()
+            return redirect(f'/user/{user.id}')
+    else:
+        return render_template("submitphoto.html", form=form)
+
+@app.get('/user/<int:user_id>')
+def user_detail_page(user_id):
+    user = User.query.get_or_404(user_id)
+
+    return render_template("/users/detail.html", user=user)

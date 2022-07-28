@@ -24,3 +24,7 @@ class LoginForm(FlaskForm):
 
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[Length(min=6)])
+
+class PhotoForm(FlaskForm):
+    file = FileField('file')
+

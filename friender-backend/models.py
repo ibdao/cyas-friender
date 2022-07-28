@@ -87,7 +87,7 @@ class User(db.Model):
         nullable=False
     )
 
-    img_file = db.Column(
+    img_url = db.Column(
         db.Text,
         nullable=True
     )

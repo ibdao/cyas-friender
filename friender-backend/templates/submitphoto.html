@@ -4,6 +4,7 @@
 <h1>Choose a profile picture</h1>
 
   <form method="POST" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
     <label for="file">Input photo file here</label>
     <input type="file" name="file" value="file">
     <button>Upload!</button>
