@@ -1,34 +1,17 @@
 {% extends 'base.html' %}
 {% block content %}
-<div id="pageCarousel" class="carousel slide" data-ride="carousel">
-    <div class="carousel-inner">
-        {% for user in users %}
-        {% if user.img_url != None %}
-        <div class="carousel-item {% if loop.index == 1 %} active {% endif %}" id="slide{{ loop.index }}">
-            <div class="user-card">
-                <p>{{ user.first_name }}</p>
-                <img src="{{ user.img_url }}" width=300px height=400px />
-                <p>Hobbies: {{ user.hobbies }}</p>
-                <p>Interests: {{ user.interests }}</p>
-            </div>
-            <form>
-                <button>Like</button>
-            </form>
-            <form>
-                <button>Dislike</button>
-            </form>
-        </div>
-        {% endif %}
-        {% endfor %}
+<div class="container">
+
+    {% for user in users %}
+    <div class="user-card text-center" id="{{user.username}}">
+        <p>{{ user.first_name }}</p>
+        <img src="{{ user.img_url }}" width=300px height=400px />
+        <p>Hobbies: {{ user.hobbies }}</p>
+        <p>Interests: {{ user.interests }}</p>
+        <button>Like</button>
+        <button>Dislike</button>
     </div>
-    <a class="carousel-control-prev" href="#pageCarousel" role="button" data-slide="prev">
-        <span class="carousel-control-prev-icon bg-primary" aria-hidden="true"></span>
-        <span class="sr-only">Previous</span>
-    </a>
-    <a class="carousel-control-next" href="#pageCarousel" role="button" data-slide="next">
-        <span class="carousel-control-next-icon bg-primary" aria-hidden="true"></span>
-        <span class="sr-only">Next</span>
-    </a>
+    {% endfor %}
 
 </div>
 {% endblock %}

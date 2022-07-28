@@ -133,3 +133,10 @@ def user_detail_page(user_id):
     user = User.query.get_or_404(user_id)
 
     return render_template("/users/detail.html", user=user)
+
+def likes(evt):
+    liked_user = User.query.get_or_404(evt.target.user.id)
+    g.user.liking.append(liked_user)
+    db.session.commit()
+
+    return redirect("/")
