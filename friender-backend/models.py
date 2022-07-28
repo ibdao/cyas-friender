@@ -66,10 +66,6 @@ class User(db.Model):
         nullable=False
     )
 
-    # image_url = db.Column(
-    #     db.Text,
-    #     nullable=False
-    # )
 
     location = db.Column(
         db.Text,
@@ -91,6 +87,11 @@ class User(db.Model):
         nullable=False
     )
 
+    img_file = db.Column(
+        db.Text,
+        nullable=True
+    )
+
 
     # like = db.relationship(
     #     "User",
@@ -109,7 +110,7 @@ class User(db.Model):
     # )
 
     def __repr__(self):
-        return f"<User #{self.id}: {self.username}, {self.email}>"
+        return f"<User #{self.id}: {self.username}>"
 
     @classmethod
     def signup(cls,
@@ -141,6 +142,7 @@ class User(db.Model):
 
         db.session.add(user)
         return user
+
 
     @classmethod
     def authenticate(cls, username, password):
