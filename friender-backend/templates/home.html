@@ -3,9 +3,9 @@
 <div>
     <div class="carousel-inner">
         {% for user in users %}
-        {% if user.image != None %}
+        {% if user.img_url != None %}
         <div class="carousel-item {% if loop.index == 1 %} active {% endif %}" id="slide{{ loop.index }}">
-            {{ user.username }}
+            <img src="{{ user.img_url }}" width=600px height=500px/>
         </div>
         {% endif %}
         {% endfor %}

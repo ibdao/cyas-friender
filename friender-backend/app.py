@@ -60,8 +60,8 @@ def generate_landing():
     if g.user == None:
         return render_template("home-anon.html")
     else:
-        
-        return render_template("home.html")
+        users = User.query.all()
+        return render_template("home.html", users=users)
 
 
 @app.route("/signup", methods=["GET","POST"])
