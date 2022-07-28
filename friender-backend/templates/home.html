@@ -1,11 +1,22 @@
 {% extends 'base.html' %}
 {% block content %}
-<div>
+<div id="pageCarousel" class="carousel slide" data-ride="carousel">
     <div class="carousel-inner">
         {% for user in users %}
         {% if user.img_url != None %}
         <div class="carousel-item {% if loop.index == 1 %} active {% endif %}" id="slide{{ loop.index }}">
-            <img src="{{ user.img_url }}" width=600px height=500px/>
+            <div class="user-card">
+                <p>{{ user.first_name }}</p>
+                <img src="{{ user.img_url }}" width=300px height=400px />
+                <p>Hobbies: {{ user.hobbies }}</p>
+                <p>Interests: {{ user.interests }}</p>
+            </div>
+            <form>
+                <button>Like</button>
+            </form>
+            <form>
+                <button>Dislike</button>
+            </form>
         </div>
         {% endif %}
         {% endfor %}

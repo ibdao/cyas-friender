@@ -100,10 +100,10 @@ def signup_page():
 def submit_a_photo(user_id):
     """ Submit Profile photo page
         Renders photo form
-        Takes a file from user, uploads to AWS 
+        Takes a file from user, uploads to AWS
         and updates database with file name
     """
-    
+
     user = User.query.get_or_404(user_id)
     filename = secure_filename(str(uuid.uuid1()))
 
