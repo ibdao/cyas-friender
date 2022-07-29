@@ -4,12 +4,14 @@ import boto3
 import os
 import uuid
 from botocore.exceptions import ClientError
+from psycopg2 import IntegrityError
 from werkzeug.utils import secure_filename
 from models import db, connect_db, User, Like, Dislike
 from forms import CSRFProtection, SignUpForm, LoginForm, PhotoForm
 
 app = Flask(__name__)
 
+# configure our environmental and global variables
 app.config['SQLALCHEMY_DATABASE_URI'] = (
     os.environ['DATABASE_URL'].replace("postgres://", "postgresql://"))
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
@@ -19,6 +21,7 @@ app.config['S3_KEY'] = os.environ['S3_KEY']
 app.config['S3_SECRET'] = os.environ['S3_SECRET']
 app.config['S3_BUCKET'] = os.environ['S3_BUCKET']
 BASE_URL = os.environ['BASE_URL']
+CURR_USER_KEY = "curr_user"
 
 s3 = boto3.client(
     "s3",
@@ -26,18 +29,21 @@ s3 = boto3.client(
    aws_secret_access_key=app.config['S3_SECRET']
 )
 
+#######CONNECT OUR APP TO OUR PSQL DATABASE
 connect_db(app)
 # db.drop_all()
 db.create_all()
 
 # debug = DebugToolbarExtension(app)
 
-CURR_USER_KEY = "curr_user"
 
+
+######## ROUTES
 
 @app.before_request
 def add_user_to_g():
-    """If we're logged in, add curr user to Flask global."""
+    """If we're logged in, add curr user to Flask global.
+    Do this before every endpoint request."""
 
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY])
@@ -47,6 +53,8 @@ def add_user_to_g():
 
 @app.before_request
 def add_csrf_protection():
+    """Add cross-site request forgery protection through WTForms.
+    Run this before every endpoint request."""
 
     g.csrf_form = CSRFProtection()
 
@@ -56,7 +64,9 @@ def do_login(user):
 
     session[CURR_USER_KEY] = user.id
 
+
 def do_logout():
+    """Log out user."""
 
     if CURR_USER_KEY in session:
         del session[CURR_USER_KEY]
@@ -65,7 +75,8 @@ def do_logout():
 
 @app.get("/")
 def generate_landing():
-    """Generate app landing page for non-logged in users"""
+    """Generate app landing page for non-logged in users.
+    Generate app landing page for logged-in users."""
 
     if g.user == None:
         return render_template("home-anon.html")
@@ -76,27 +87,30 @@ def generate_landing():
 
 @app.route("/signup", methods=["GET","POST"])
 def signup_page():
-    """Submit signup form and create user
-        Takes user to upload profile photo page
+    """Handle signup form. Display it and allow a user to
+    create a profile. Adds user to database upon submission.
+    Redirects to the add profilephoto page.
     """
 
     form = SignUpForm()
 
     if form.validate_on_submit():
+        try:
 
-        user = User.signup(
-            username=form.username.data,
-            first_name=form.first_name.data,
-            last_name=form.last_name.data,
-            location=form.location.data,
-            friend_radius=form.friend_radius.data,
-            hobbies=form.hobbies.data,
-            interests=form.interests.data,
-            password=form.password.data,
-        )
-
-
-        db.session.commit()
+            user = User.signup(
+                username=form.username.data,
+                first_name=form.first_name.data,
+                last_name=form.last_name.data,
+                location=form.location.data,
+                friend_radius=form.friend_radius.data,
+                hobbies=form.hobbies.data,
+                interests=form.interests.data,
+                password=form.password.data,
+            )
+            db.session.commit()
+        except IntegrityError:
+            flash("username already taken", "danger")
+            return render_template("signup.html", form=form)
 
         do_login(user)
 
@@ -105,8 +119,11 @@ def signup_page():
         return render_template("signup.html", form=form)
 
 
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    """Display login form for a returning user and allow user to submit
+    login form to log in. Redirect home."""
 
     form = LoginForm()
 
@@ -118,12 +135,16 @@ def login():
         )
         if user:
             do_login(user)
-        return redirect('/')
+            flash(f"hello, {user.username}", "success")
+            return redirect('/')
+        flash("invalid credentials", "danger")
     return render_template("login.html", form=form)
 
 
 @app.post("/logout")
 def logout():
+    """Allow user to log out. Remove from session. Redirect
+    to login form."""
 
     form = g.csrf_form
     if not form.validate_on_submit():
@@ -136,10 +157,12 @@ def logout():
 
 @app.route("/profilephoto/<int:user_id>", methods=["GET", "POST"])
 def submit_a_photo(user_id):
-    """ Submit Profile photo page
-        Renders photo form
-        Takes a file from user, uploads to AWS
-        and updates database with file name
+    """Shows the submitphoto page.
+       Allows user to upload a photo to their profile.
+       Updates database with photo url.
+       Updates AWS bucket with photo file.
+       In AWS and database, photo file name is given a UUID.
+       Redirects to user detail page.
     """
 
     user = User.query.get_or_404(user_id)
@@ -166,14 +189,21 @@ def submit_a_photo(user_id):
     else:
         return render_template("submitphoto.html", form=form)
 
+
+
 @app.get('/user/<int:user_id>')
 def user_detail_page(user_id):
+    """Currently shows photo of user visited
+       Update for better functionality."""
     user = User.query.get_or_404(user_id)
 
     return render_template("/users/detail.html", user=user)
 
 @app.get('/user/<int:user_id>/friends')
 def user_friends(user_id):
+    """Shows a user's friends list.
+    This is where that user liked someone,
+    and that someone liked them back."""
     user = User.query.get_or_404(user_id)
     #user.liking is an array
     #friend.liking is an array
@@ -184,6 +214,9 @@ def user_friends(user_id):
 
 @app.get('/pending/<int:liked_user_id>')
 def likes(liked_user_id):
+    """This updates the likes table in our database with
+    a profile that the user has liked.
+    Redirects home."""
     liked_user = User.query.get_or_404(liked_user_id)
     g.user.liking.append(liked_user)
     db.session.commit()
@@ -192,6 +225,9 @@ def likes(liked_user_id):
 
 @app.get('/disliking/<int:disliked_user_id>')
 def dislikes(disliked_user_id):
+    """This updates the dislikes table in our database
+    with a profile the user has disliked.
+    Redirects home."""
     disliked_user = User.query.get_or_404(disliked_user_id)
     g.user.disliking.append(disliked_user)
     db.session.commit()
