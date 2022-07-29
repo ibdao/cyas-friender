@@ -20,3 +20,16 @@
     for loop to loop over what we queried
         <img src="user.img_url">
         other info
+
+
+TODOs: 
+    - Create ability to message friends .
+    - Condense homepage potential friend list to those only within the friend 
+        radius. 
+    - Create functionality to edit user profile. 
+    - Create ability for users to store more than one picture in an album that
+        can be viewed by friends. 
+    - Homepage: 
+        Transition to carousel-like list. 
+
+
