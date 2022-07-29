@@ -3,6 +3,9 @@
 {% block content %}
 
 <div class="friendslist">
+  {% if friends|length == 0 %}
+  <div class="text-center"> You have no friends :(</div>
+  {% endif %}
   {% for user in friends %}
   <div class="card" style="width: 450px">
     <div class="user-card card-body text-center" id="{{user.username}}">

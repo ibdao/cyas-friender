@@ -186,10 +186,6 @@ def submit_a_photo(user_id):
     filename = secure_filename(str(uuid.uuid1()))
 
     form = PhotoForm()
-    
-    if not form.validate_on_submit() or not g.user:
-        flash("Access unauthorized.", "danger")
-        return redirect("/")
 
     if form.validate_on_submit():
         img = form.file.data
