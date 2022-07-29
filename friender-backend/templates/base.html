@@ -3,20 +3,22 @@
 <head>
   <meta charset="UTF-8">
 
-  <title>Test</title>
+  <title>Friender</title>
   <link rel="stylesheet"
         href="https://unpkg.com/bootstrap@5/dist/css/bootstrap.css"></link>
 </head>
 <body>
   <nav>
-    <a href="/">Home</a>
+    <a href="/" class="navbar navbar-expand">Friender</a>
     {% if g.user %}
-    <a href="/user/{{g.user.id}}/friends">Friends</a>
+    <a href="/user/{{g.user.id}}/friends" class="nav-item">Friends</a>
     <form action="/logout" method="POST">{{g.csrf_form.hidden_tag()}}
-      <button class="btn btn-link">Logout</button>
+      <button class="btn btn-link nav-item">Logout</button>
     </form>
+    <h4 class="text-left">Currently logged in as {{g.user.username}}</h4>
     {% endif %}
   </nav>
+  <br>
   <div class="container">
 
     {% for category, message in get_flashed_messages(with_categories=True) %}

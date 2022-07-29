@@ -15,7 +15,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = (
     os.environ['DATABASE_URL'].replace("postgres://", "postgresql://"))
 app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
-
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 app.config['S3_KEY'] = os.environ['S3_KEY']
 app.config['S3_SECRET'] = os.environ['S3_SECRET']
@@ -25,11 +25,11 @@ CURR_USER_KEY = "curr_user"
 
 s3 = boto3.client(
     "s3",
-   aws_access_key_id=app.config['S3_KEY'],
-   aws_secret_access_key=app.config['S3_SECRET']
+    aws_access_key_id=app.config['S3_KEY'],
+    aws_secret_access_key=app.config['S3_SECRET']
 )
 
-#######CONNECT OUR APP TO OUR PSQL DATABASE
+# CONNECT OUR APP TO OUR PSQL DATABASE
 connect_db(app)
 # db.drop_all()
 db.create_all()
@@ -37,13 +37,13 @@ db.create_all()
 # debug = DebugToolbarExtension(app)
 
 
-
-######## ROUTES
+# ROUTES
 
 @app.before_request
 def add_user_to_g():
-    """If we're logged in, add curr user to Flask global.
-    Do this before every endpoint request."""
+    """If we're logged in, add curr user to Flask g.
+        - Do this before every endpoint request.
+    """
 
     if CURR_USER_KEY in session:
         g.user = User.query.get(session[CURR_USER_KEY])
@@ -51,10 +51,12 @@ def add_user_to_g():
     else:
         g.user = None
 
+
 @app.before_request
 def add_csrf_protection():
     """Add cross-site request forgery protection through WTForms.
-    Run this before every endpoint request."""
+        - Run this before every endpoint request.
+    """
 
     g.csrf_form = CSRFProtection()
 
@@ -72,24 +74,37 @@ def do_logout():
         del session[CURR_USER_KEY]
 
 
-
 @app.get("/")
 def generate_landing():
-    """Generate app landing page for non-logged in users.
-    Generate app landing page for logged-in users."""
+    """Generate app landing page 
+        - Logged in users will see a list of other users.
+        - Not logged in users will be given the opetion to sign up or log in.
+
+        TODO update list so that already friends will not show up here.
+        - g.user will not see users that have been disliked.
+    """
 
     if g.user == None:
         return render_template("home-anon.html")
     else:
-        users = User.query.all()
+        dislikes_id = [u.id for u in g.user.disliking]
+
+        users = [user for user in User
+                 .query
+                 .filter(User.id.notin_(dislikes_id))
+                 .all()
+                 if user.id != g.user.id
+                 ]
+
         return render_template("home.html", users=users)
 
 
-@app.route("/signup", methods=["GET","POST"])
+@app.route("/signup", methods=["GET", "POST"])
 def signup_page():
-    """Handle signup form. Display it and allow a user to
-    create a profile. Adds user to database upon submission.
-    Redirects to the add profilephoto page.
+    """Handle signup form. 
+        - Display it and allow a user to create a profile. 
+        - Adds user to database upon submission.
+        - Redirects to the add profilephoto page.
     """
 
     form = SignUpForm()
@@ -107,9 +122,11 @@ def signup_page():
                 interests=form.interests.data,
                 password=form.password.data,
             )
+
             db.session.commit()
+
         except IntegrityError:
-            flash("username already taken", "danger")
+            flash("Username already taken", "danger")
             return render_template("signup.html", form=form)
 
         do_login(user)
@@ -117,7 +134,6 @@ def signup_page():
         return redirect(f"/profilephoto/{user.id}")
     else:
         return render_template("signup.html", form=form)
-
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -135,19 +151,21 @@ def login():
         )
         if user:
             do_login(user)
-            flash(f"hello, {user.username}", "success")
+            flash(f"Hello, {user.username}", "success")
             return redirect('/')
-        flash("invalid credentials", "danger")
+        flash("Invalid credentials", "danger")
     return render_template("login.html", form=form)
 
 
 @app.post("/logout")
 def logout():
-    """Allow user to log out. Remove from session. Redirect
-    to login form."""
+    """Allow user to log out. Remove from session. 
+        - Redirect to login form.
+    """
 
     form = g.csrf_form
     if not form.validate_on_submit():
+        flash("Access unauthorized", 'danger')
         return redirect("/")
 
     do_logout()
@@ -158,17 +176,20 @@ def logout():
 @app.route("/profilephoto/<int:user_id>", methods=["GET", "POST"])
 def submit_a_photo(user_id):
     """Shows the submitphoto page.
-       Allows user to upload a photo to their profile.
-       Updates database with photo url.
-       Updates AWS bucket with photo file.
-       In AWS and database, photo file name is given a UUID.
-       Redirects to user detail page.
+        - Updates database with photo url.
+        - Updates AWS bucket with photo file.
+        - In AWS and database, photo file name is given a UUID.
+        - Redirects to user detail page.
     """
 
     user = User.query.get_or_404(user_id)
     filename = secure_filename(str(uuid.uuid1()))
 
     form = PhotoForm()
+    
+    if not form.validate_on_submit() or not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
 
     if form.validate_on_submit():
         img = form.file.data
@@ -190,44 +211,53 @@ def submit_a_photo(user_id):
         return render_template("submitphoto.html", form=form)
 
 
-
 @app.get('/user/<int:user_id>')
 def user_detail_page(user_id):
     """Currently shows photo of user visited
-       Update for better functionality."""
+        - TODO: Create a more complete details page for the user.
+    """
     user = User.query.get_or_404(user_id)
 
     return render_template("/users/detail.html", user=user)
 
+
 @app.get('/user/<int:user_id>/friends')
 def user_friends(user_id):
     """Shows a user's friends list.
-    This is where that user liked someone,
-    and that someone liked them back."""
+        - This is where two users have liked each other.
+    """
+
+    if not g.user:
+        flash("Access unauthorized.", "danger")
+        return redirect("/")
+
     user = User.query.get_or_404(user_id)
-    #user.liking is an array
-    #friend.liking is an array
+
     friends = [friend for friend in user.liking if user in friend.liking]
-    print('friends', friends)
+
     return render_template("friends.html", friends=friends)
 
 
 @app.get('/pending/<int:liked_user_id>')
 def likes(liked_user_id):
-    """This updates the likes table in our database with
-    a profile that the user has liked.
-    Redirects home."""
+    """This updates the likes table in database
+        - Redirects home.
+    """
+
     liked_user = User.query.get_or_404(liked_user_id)
     g.user.liking.append(liked_user)
     db.session.commit()
 
     return redirect("/")
 
+
 @app.get('/disliking/<int:disliked_user_id>')
 def dislikes(disliked_user_id):
-    """This updates the dislikes table in our database
-    with a profile the user has disliked.
-    Redirects home."""
+    """This updates the dislikes table in database.
+        - Redirects home.
+
+    """
+
     disliked_user = User.query.get_or_404(disliked_user_id)
     g.user.disliking.append(disliked_user)
     db.session.commit()
