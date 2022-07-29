@@ -8,7 +8,15 @@
         href="https://unpkg.com/bootstrap@5/dist/css/bootstrap.css"></link>
 </head>
 <body>
-  <nav><a href="/">Home</a></nav>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/user/{{g.user.id}}/friends">Friends</a>
+    {% if g.user %}
+    <form action="/logout" method="POST">{{g.csrf_form.hidden_tag()}}
+      <button>Logout</button>
+    </form>
+    {% endif %}
+  </nav>
   {% block content%}
   {% endblock %}
 

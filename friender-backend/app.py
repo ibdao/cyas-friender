@@ -6,7 +6,7 @@ import uuid
 from botocore.exceptions import ClientError
 from werkzeug.utils import secure_filename
 from models import db, connect_db, User, Like, Dislike
-from forms import SignUpForm, LoginForm, PhotoForm
+from forms import CSRFProtection, SignUpForm, LoginForm, PhotoForm
 
 app = Flask(__name__)
 
@@ -45,11 +45,21 @@ def add_user_to_g():
     else:
         g.user = None
 
+@app.before_request
+def add_csrf_protection():
+
+    g.csrf_form = CSRFProtection()
+
 
 def do_login(user):
     """Log in user."""
 
     session[CURR_USER_KEY] = user.id
+
+def do_logout():
+
+    if CURR_USER_KEY in session:
+        del session[CURR_USER_KEY]
 
 
 
@@ -95,6 +105,34 @@ def signup_page():
         return render_template("signup.html", form=form)
 
 
+@app.route("/login", methods=["GET", "POST"])
+def login():
+
+    form = LoginForm()
+
+    if form.validate_on_submit():
+
+        user = User.authenticate(
+            form.username.data,
+            form.password.data
+        )
+        if user:
+            do_login(user)
+        return redirect('/')
+    return render_template("login.html", form=form)
+
+
+@app.post("/logout")
+def logout():
+
+    form = g.csrf_form
+    if not form.validate_on_submit():
+        return redirect("/")
+
+    do_logout()
+
+    return redirect("/login")
+
 
 @app.route("/profilephoto/<int:user_id>", methods=["GET", "POST"])
 def submit_a_photo(user_id):
@@ -134,9 +172,28 @@ def user_detail_page(user_id):
 
     return render_template("/users/detail.html", user=user)
 
-def likes(evt):
-    liked_user = User.query.get_or_404(evt.target.user.id)
+@app.get('/user/<int:user_id>/friends')
+def user_friends(user_id):
+    user = User.query.get_or_404(user_id)
+    #user.liking is an array
+    #friend.liking is an array
+    friends = [friend for friend in user.liking if user in friend.liking]
+    print('friends', friends)
+    return render_template("friends.html", friends=friends)
+
+
+@app.get('/pending/<int:liked_user_id>')
+def likes(liked_user_id):
+    liked_user = User.query.get_or_404(liked_user_id)
     g.user.liking.append(liked_user)
+    db.session.commit()
+
+    return redirect("/")
+
+@app.get('/disliking/<int:disliked_user_id>')
+def dislikes(disliked_user_id):
+    disliked_user = User.query.get_or_404(disliked_user_id)
+    g.user.disliking.append(disliked_user)
     db.session.commit()
 
     return redirect("/")

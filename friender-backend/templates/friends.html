@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="friendslist">
+  {% for user in friends %}
+  <div>
+    <a href="/user/{{user.id}}">
+      <image src="{{user.img_url}}"></image>
+      <p>{{user.first_name}}</p>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+
+{% endblock %}

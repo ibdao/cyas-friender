@@ -8,8 +8,8 @@
         <img src="{{ user.img_url }}" width=300px height=400px />
         <p>Hobbies: {{ user.hobbies }}</p>
         <p>Interests: {{ user.interests }}</p>
-        <button>Like</button>
-        <button>Dislike</button>
+        <a href="/pending/{{user.id}}">Like</a>
+        <a href="/disliking/{{user.id}}">Dislike</a>
     </div>
     {% endfor %}
 
