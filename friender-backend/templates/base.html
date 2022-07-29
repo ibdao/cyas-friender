@@ -10,10 +10,10 @@
 <body>
   <nav>
     <a href="/">Home</a>
-    <a href="/user/{{g.user.id}}/friends">Friends</a>
     {% if g.user %}
+    <a href="/user/{{g.user.id}}/friends">Friends</a>
     <form action="/logout" method="POST">{{g.csrf_form.hidden_tag()}}
-      <button>Logout</button>
+      <button class="btn btn-link">Logout</button>
     </form>
     {% endif %}
   </nav>

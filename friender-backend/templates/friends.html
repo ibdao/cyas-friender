@@ -4,12 +4,14 @@
 
 <div class="friendslist">
   {% for user in friends %}
-  <div>
-    <a href="/user/{{user.id}}">
-      <image src="{{user.img_url}}"></image>
-      <p>{{user.first_name}}</p>
-    </a>
-  </div>
+  <div class="card" style="width: 450px">
+    <div class="user-card card-body text-center" id="{{user.username}}">
+      <a href="/user/{{user.id}}">
+        <p class="card-title">{{ user.first_name }}</p>
+        <img src="{{ user.img_url }}" width=300px height=400px />
+      </a>
+    </div>
+</div>
   {% endfor %}
 </div>
 

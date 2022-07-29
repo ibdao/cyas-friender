@@ -3,13 +3,15 @@
 <div class="container">
 
     {% for user in users %}
-    <div class="user-card text-center" id="{{user.username}}">
-        <p>{{ user.first_name }}</p>
-        <img src="{{ user.img_url }}" width=300px height=400px />
-        <p>Hobbies: {{ user.hobbies }}</p>
-        <p>Interests: {{ user.interests }}</p>
-        <a href="/pending/{{user.id}}">Like</a>
-        <a href="/disliking/{{user.id}}">Dislike</a>
+    <div class="card" style="width: 450px">
+        <div class="user-card card-body text-center" id="{{user.username}}">
+            <p class="card-title">{{ user.first_name }}</p>
+            <img src="{{ user.img_url }}" width=300px height=400px />
+            <p class="card-text">Hobbies: {{ user.hobbies }}</p>
+            <p class="card-text">Interests: {{ user.interests }}</p>
+            <a href="/pending/{{user.id}}" class="btn btn-primary">Like</a>
+            <a href="/disliking/{{user.id}}" class="btn btn-danger">Dislike</a>
+        </div>
     </div>
     {% endfor %}
 
