@@ -76,22 +76,22 @@ def do_logout():
 
 @app.get("/")
 def generate_landing():
-    """Generate app landing page 
+    """Generate app landing page
         - Logged in users will see a list of other users.
         - Not logged in users will be given the opetion to sign up or log in.
-
-        TODO update list so that already friends will not show up here.
-        - g.user will not see users that have been disliked.
+        - g.user will not see users that have been disliked or liked
     """
 
     if g.user == None:
         return render_template("home-anon.html")
     else:
         dislikes_id = [u.id for u in g.user.disliking]
+        likes_id = [u.id for u in g.user.liking]
 
         users = [user for user in User
                  .query
                  .filter(User.id.notin_(dislikes_id))
+                 .filter(User.id.notin_(likes_id))
                  .all()
                  if user.id != g.user.id
                  ]
@@ -101,8 +101,8 @@ def generate_landing():
 
 @app.route("/signup", methods=["GET", "POST"])
 def signup_page():
-    """Handle signup form. 
-        - Display it and allow a user to create a profile. 
+    """Handle signup form.
+        - Display it and allow a user to create a profile.
         - Adds user to database upon submission.
         - Redirects to the add profilephoto page.
     """
@@ -159,7 +159,7 @@ def login():
 
 @app.post("/logout")
 def logout():
-    """Allow user to log out. Remove from session. 
+    """Allow user to log out. Remove from session.
         - Redirect to login form.
     """
 
@@ -181,6 +181,9 @@ def submit_a_photo(user_id):
         - In AWS and database, photo file name is given a UUID.
         - Redirects to user detail page.
     """
+    if not g.user:
+        flash("Access unauthorized", 'danger')
+        return redirect("/")
 
     user = User.query.get_or_404(user_id)
     filename = secure_filename(str(uuid.uuid1()))
@@ -207,11 +210,16 @@ def submit_a_photo(user_id):
         return render_template("submitphoto.html", form=form)
 
 
+
 @app.get('/user/<int:user_id>')
 def user_detail_page(user_id):
     """Currently shows photo of user visited
         - TODO: Create a more complete details page for the user.
     """
+    if not g.user:
+        flash("Access unauthorized", 'danger')
+        return redirect("/")
+
     user = User.query.get_or_404(user_id)
 
     return render_template("/users/detail.html", user=user)

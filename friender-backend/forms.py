@@ -27,4 +27,3 @@ class LoginForm(FlaskForm):
 
 class PhotoForm(FlaskForm):
     file = FileField('file')
-

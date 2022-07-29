@@ -1,7 +1,12 @@
 {% extends 'base.html' %}
 {% block content %}
-    <h1>{{user.first_name}}</h1>
+    <h1 style="color: white">{{user.first_name}} {{user.last_name}}</h1>
     <img src="{{user.img_url}}" width=600px height=500px/>
+    <h2 style="color: white">Hobbies: {{user.hobbies}}</h2>
+    <h2 style="color: white">Interests: {{user.interests}}</h2>
+    <h3 style="color: white">Friend radius: {{user.friend_radius}}</h3>
+
+
 
 
 {% endblock %}

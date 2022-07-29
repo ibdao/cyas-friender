@@ -4,6 +4,7 @@ from flask_sqlalchemy import SQLAlchemy
 bcrypt = Bcrypt()
 db = SQLAlchemy()
 
+
 class Like (db.Model):
     __tablename__='likes'
 
@@ -165,27 +166,29 @@ class User(db.Model):
 
         return False
 
-    #comparing two users to each other, self and other_user
-    #checking to see if they are in each other's liked list
-    def is_liking(self, other_user):
-        found_user_list = [
-            user for user in self.liking if user == other_user]
-        return len(found_user_list) == 1
+    # laying out some list comprehensions
 
-    def is_liked_by(self, other_user):
-        found_user_list = [
-            user for user in self.like if user == other_user]
-        return len(found_user_list) == 1
+    # #comparing two users to each other, self and other_user
+    # #checking to see if they are in each other's liked list
+    # def is_liking(self, other_user):
+    #     found_user_list = [
+    #         user for user in self.liking if user == other_user]
+    #     return len(found_user_list) == 1
 
-    def is_disliking(self, other_user):
-        found_user_list = [
-            user for user in self.disliking if user == other_user]
-        return len(found_user_list) == 1
+    # def is_liked_by(self, other_user):
+    #     found_user_list = [
+    #         user for user in self.like if user == other_user]
+    #     return len(found_user_list) == 1
 
-    def is_disliked_by(self, other_user):
-        found_user_list = [
-            user for user in self.dislike if user == other_user]
-        return len(found_user_list) == 1
+    # def is_disliking(self, other_user):
+    #     found_user_list = [
+    #         user for user in self.disliking if user == other_user]
+    #     return len(found_user_list) == 1
+
+    # def is_disliked_by(self, other_user):
+    #     found_user_list = [
+    #         user for user in self.dislike if user == other_user]
+    #     return len(found_user_list) == 1
 
 
 

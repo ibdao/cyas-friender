@@ -6,16 +6,19 @@
   <title>Friender</title>
   <link rel="stylesheet"
         href="https://unpkg.com/bootstrap@5/dist/css/bootstrap.css"></link>
+  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
   <nav>
-    <a href="/" class="navbar navbar-expand">Friender</a>
+    <a style="color: white" href="/" class="navbar navbar-expand">Friender</a>
     {% if g.user %}
-    <a href="/user/{{g.user.id}}/friends" class="nav-item">Friends</a>
+    <a style="color: white" href="/user/{{g.user.id}}" class="nav-item">Profile</a>
+    <br>
+    <a style="color: white" href="/user/{{g.user.id}}/friends" class="nav-item">Friends</a>
     <form action="/logout" method="POST">{{g.csrf_form.hidden_tag()}}
-      <button class="btn btn-link nav-item">Logout</button>
+      <button style="color: white" class="btn btn-link nav-item">Logout</button>
     </form>
-    <h4 class="text-left">Currently logged in as {{g.user.username}}</h4>
+    <h4 style="color: white" class="text-left">Currently logged in as {{g.user.username}}</h4>
     {% endif %}
   </nav>
   <br>
